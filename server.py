@@ -16,15 +16,36 @@ def run_server(port, transport_protocol):
 
     while True:
         data = client_socket.recv(1024).decode('utf-8')
-        if data == "exit":
+        print(data)
+        print("------------------")
+        if data == "quit":
             print("Client requested to exit.")
             break
-        print(f"Received from client: {data}")
+        
+        elif data.split()[0] == "get":
+            print("get command")
+        
+        elif data.split()[0] == "put":
+            print("put command")
+            print(data[1])
+            # with open("Server_Folder/server.txt", "a") as f:
+            #     f.write(data)
+            #     f.close()
+            # print("Data stored in file.")
+        
+        elif len(data.split()) == 1:
+            print("filename")
+            
+        
+        
+        
+        #print(f"Received from client: {data}")
         
         # store data in file
-        with open("server.txt", "a") as f:
-            f.write(data)
-            f.close()
+        # with open("Server_Folder/server.txt", "a") as f:
+        #     f.write(data)
+        #     f.close()
+        # print("Data stored in file.")
 
     # Close the sockets
     client_socket.close()
@@ -40,60 +61,3 @@ if __name__ == "__main__":
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# import socket
-
-# # Server configuration
-# host = "127.0.0.1"
-# port = 12345
-
-# # Create a socket object
-# server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-# # Bind the socket to the address and port
-# server_socket.bind((host, port))
-
-# # Listen for incoming connections
-# server_socket.listen(1)
-
-# print(f"Server listening on {host}:{port}")
-
-# # Accept a connection from the client
-# client_socket, client_address = server_socket.accept()
-# print(f"Accepted connection from {client_address}")
-
-# while True:
-#     data = client_socket.recv(1024).decode('utf-8')
-#     if data == "exit":
-#         print("Client requested to exit.")
-#         break
-#     print(f"Received from client: {data}")
-
-# # Close the sockets
-# client_socket.close()
-# server_socket.close()
