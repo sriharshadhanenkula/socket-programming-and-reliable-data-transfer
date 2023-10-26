@@ -7,9 +7,9 @@ def run_server(port, transport_protocol):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM if transport_protocol == 'tcp' else socket.SOCK_DGRAM)
 
     # Bind the socket to the address and port
-    server_socket.bind(('0.0.0.0', port))
+    server_socket.bind(('', port))
 
-    server_socket.listen(1)
+    server_socket.listen(5)
 
     print(f"Server listening on port {port} using {transport_protocol} protocol")
 
@@ -47,7 +47,6 @@ def run_server(port, transport_protocol):
 
     # Close the sockets
     client_socket.close()
-    server_socket.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Server program")

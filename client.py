@@ -3,11 +3,18 @@ import argparse
 
 def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol):
     # Create a socket object
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM if transport_protocol == 'tcp' else socket.SOCK_DGRAM)
-
+    
+    cache_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM if transport_protocol == 'tcp' else socket.SOCK_DGRAM)
+    # Connect to the cache
+    cache_address = (cache_ip, cache_port)
+    cache_socket.connect(cache_address)
     # Connect to the server
+    
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM if transport_protocol == 'tcp' else socket.SOCK_DGRAM)
     server_address = (server_ip, server_port)
     client_socket.connect(server_address)
+    
+  
     
     while True:
         userInput = input("Enter command: ")
@@ -52,6 +59,8 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
 
     # Close the socket
     client_socket.close()
+    cache_socket.close()
+    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Client program")
