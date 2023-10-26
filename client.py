@@ -14,46 +14,119 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
     server_address = (server_ip, server_port)
     client_socket.connect(server_address)
     
-  
-    
-    while True:
-        userInput = input("Enter command: ")
-        
-        
-        if userInput == "quit":
-            client_socket.send(userInput.encode('utf-8'))
-            print("Exiting program!")
-            break
-        
-        elif userInput.split()[0] == "get":
-           # print("get command")
-            client_socket.send(userInput.split()[0].encode('utf-8'))
-        
-        elif userInput.split()[0] == "put":
-            print("Awaiting server response.")
-            inputFile = userInput.split()[1]
-           # print(inputFile)
-            client_socket.send(userInput.split()[0].encode('utf-8'))
-            # receive message from server to send file
-            message = client_socket.recv(1024).decode('utf-8')
-            if(message == "send file"):
-                with open(inputFile, 'r') as file:
-                    InputData = file.read()
-                
-                for i in range(0, len(InputData), 1000):
-                    data = InputData[i:i+1000]
-                    if data:
-                        client_socket.send("data_start".encode('utf-8'))
-                        if client_socket.recv(1024).decode('utf-8') == "data_start_ok":
-                            client_socket.send(data.encode('utf-8'))
-                   
-                client_socket.send("data_end".encode('utf-8'))
-                        
-            data = client_socket.recv(1024).decode('utf-8')
-            print(data)
+    if transport_protocol == 'tcp':
+        while True:
+            userInput = input("Enter command: ")
             
-        else:
-            print("Invalid command")
+            if userInput == "quit":
+                client_socket.send(userInput.encode('utf-8'))
+                print("Exiting program!")
+                break
+            
+            elif userInput.split()[0] == "get":
+                print("get command")
+                inputFile = userInput.split()[1]
+                cache_socket.send(userInput.encode('utf-8'))
+                receivedFrom = cache_socket.recv(1024).decode('utf-8')
+                if receivedFrom == "from_cache":
+                    cache_socket.send("send_data".encode('utf-8'))
+                    fileData = cache_socket.recv(100000).decode('utf-8')
+
+                    with open("Client_Folder/" + inputFile, "a") as f:
+                        f.write(fileData)
+                        f.close()
+                    print("File delivered from cache.")
+                else:
+                    print("file from server")
+               
+            
+            elif userInput.split()[0] == "put":
+                print("Awaiting server response.")
+                inputFile = userInput.split()[1]
+         
+                client_socket.send(userInput.encode('utf-8'))
+                #receive message from server to send file
+                message = client_socket.recv(1024).decode('utf-8')
+
+                if(message == "send file"):
+                    with open(inputFile, 'r') as file:
+                        InputData = file.read()        
+                        
+                    client_socket.send(InputData.encode('utf-8'))
+                            
+                data = client_socket.recv(1024).decode('utf-8')
+                print(data)
+                
+            else:
+                print("Invalid command client")
+        
+    elif transport_protocol == 'snw':
+        print("snw")
+        # while True:
+        #     userInput = input("Enter command: ")
+            
+        #     if userInput == "quit":
+        #         client_socket.send(userInput.encode('utf-8'))
+        #         print("Exiting program!")
+        #         break
+            
+        #     elif userInput.split()[0] == "get":
+        #         print("get command")
+        #         inputFile = userInput.split()[1]
+        #         cache_socket.send(userInput.split()[0].encode('utf-8'))
+        #         message = cache_socket.recv(1024).decode('utf-8')
+        #         if message == "send file":
+        #             cache_socket.send(inputFile.encode('utf-8'))
+        #             receivedFrom = cache_socket.recv(1024).decode('utf-8')
+        #             if receivedFrom == "from_cache":
+        #                 while True:
+        #                     message = cache_socket.recv(1024).decode('utf-8')
+        #                     if message == "data_start":
+        #                         cache_socket.send("data_start_ok".encode('utf-8'))
+        #                         path = "Client_Folder/" + inputFile
+        #                         with open(path, "a") as f:
+        #                             f.write(data)
+        #                             f.close()
+                                    
+        #                     elif message == "data_end":
+        #                         break
+        #                 print("File delivered from cache.")
+        #             else:
+        #                 print("file from server")
+                        
+                        
+                    
+            
+        #     elif userInput.split()[0] == "put":
+        #         print("Awaiting server response.")
+        #         inputFile = userInput.split()[1]
+        #     # print(inputFile)
+        #         client_socket.send(userInput.split()[0].encode('utf-8'))
+        #         # receive message from server to send file
+        #         message = client_socket.recv(1024).decode('utf-8')
+        #         if(message == "send file"):
+        #             with open(inputFile, 'r') as file:
+        #                 InputData = file.read()
+                    
+        #             for i in range(0, len(InputData), 1000):
+        #                 data = InputData[i:i+1000]
+        #                 if data:
+        #                     client_socket.send("data_start".encode('utf-8'))
+        #                     if client_socket.recv(1024).decode('utf-8') == "data_start_ok":
+        #                         client_socket.send(data.encode('utf-8'))
+                    
+        #             client_socket.send("data_end".encode('utf-8'))
+                            
+        #         data = client_socket.recv(1024).decode('utf-8')
+        #         print(data)
+                
+        #     else:
+        #         print("Invalid command")
+        
+        
+    else:
+        print("Invalid transport protocol")
+       
         
       
 

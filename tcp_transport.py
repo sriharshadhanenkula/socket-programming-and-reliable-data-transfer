@@ -1,4 +1,5 @@
-def callTcp(data):
-    with open("Server_Folder/server.txt", "a") as f:
-        f.write(data)
+def callTcpServer(fileData, inputFile):
+    path = "Server_Folder/" + inputFile
+    with open(path, "a") as f:
+        f.write(fileData)
         f.close()
