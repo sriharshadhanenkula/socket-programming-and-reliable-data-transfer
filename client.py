@@ -28,6 +28,7 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
                 inputFile = userInput.split()[1]
                 cache_socket.send(userInput.encode('utf-8'))
                 receivedFrom = cache_socket.recv(1024).decode('utf-8')
+                
                 if receivedFrom == "from_cache":
                     cache_socket.send("send_data".encode('utf-8'))
                     fileData = cache_socket.recv(100000).decode('utf-8')
@@ -36,8 +37,19 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
                         f.write(fileData)
                         f.close()
                     print("File delivered from cache.")
+                    
                 else:
                     print("file from server")
+                    client_socket.send(userInput.encode('utf-8'))
+                    fileData = client_socket.recv(100000).decode('utf-8')
+                    with open("Client_Folder/" + inputFile, "w") as f:
+                        f.write(fileData)
+                        f.close()
+                            
+                    cache_socket.send(fileData.encode('utf-8'))
+                 
+                    print("File delivered from origin.")
+                
                
             
             elif userInput.split()[0] == "put":

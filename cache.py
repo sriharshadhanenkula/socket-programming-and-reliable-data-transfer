@@ -22,6 +22,8 @@ def run_cache(cache_port, server_ip, server_port, transport_protocol):
     if transport_protocol == 'tcp':
         while True:
             data = client_socket.recv(1024).decode('utf-8')
+            if data == "":
+                break
             if data == "quit":
                 print("Client requested to exit.")
                 break
@@ -32,7 +34,8 @@ def run_cache(cache_port, server_ip, server_port, transport_protocol):
                 fileName = data.split()[1]
                 # check if fileName exists in cache_folder
                 path = "Cache_Folder/" + fileName
-                # print(path)
+                
+                print(path)
                 if os.path.exists(path):
                     client_socket.send("from_cache".encode('utf-8'))
                     message = client_socket.recv(1024).decode('utf-8')
@@ -41,15 +44,17 @@ def run_cache(cache_port, server_ip, server_port, transport_protocol):
                             fileData = file.read()
                             file.close()
                         client_socket.send(fileData.encode('utf-8'))
-                   
+    
                     
                 else:
-                    client_socket.send("from_server".encode('utf-8'))
                     print("File does not exist in cache_folder")
+                    client_socket.send("from_server".encode('utf-8'))
+
+                    fileData = client_socket.recv(100000).decode('utf-8')
+                    with open(path, 'w') as file:
+                        file.write(fileData)
+                        file.close()
                     
-                
-                
-                
             
             elif data.split()[0] == "put":
                 print("put command")
