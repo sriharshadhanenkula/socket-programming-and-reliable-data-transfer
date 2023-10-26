@@ -1,5 +1,6 @@
 import socket
 import argparse
+import tcp_transport
 
 def run_server(port, transport_protocol):
     # Create a socket object
@@ -16,36 +17,33 @@ def run_server(port, transport_protocol):
 
     while True:
         data = client_socket.recv(1024).decode('utf-8')
-        print(data)
-        print("------------------")
         if data == "quit":
             print("Client requested to exit.")
             break
         
         elif data.split()[0] == "get":
             print("get command")
+            print(data[1])
         
         elif data.split()[0] == "put":
             print("put command")
-            print(data[1])
-            # with open("Server_Folder/server.txt", "a") as f:
-            #     f.write(data)
-            #     f.close()
-            # print("Data stored in file.")
-        
-        elif len(data.split()) == 1:
-            print("filename")
+            # send message to client to send file
+            client_socket.send("send file".encode('utf-8')) 
+            while True:
+                data = client_socket.recv(1024).decode('utf-8')
+                if data == "data_start":
+                    client_socket.send("data_start_ok".encode('utf-8'))
+                    data = client_socket.recv(1024).decode('utf-8')
+                    tcp_transport.callTcp(data)
+                elif data == "data_end":
+                    break
+            
+            client_socket.send("File successfully uploaded.".encode('utf-8'))
+            print("File successfully uploaded.")
+        else:
+            print("Invalid command")
             
         
-        
-        
-        #print(f"Received from client: {data}")
-        
-        # store data in file
-        # with open("Server_Folder/server.txt", "a") as f:
-        #     f.write(data)
-        #     f.close()
-        # print("Data stored in file.")
 
     # Close the sockets
     client_socket.close()
