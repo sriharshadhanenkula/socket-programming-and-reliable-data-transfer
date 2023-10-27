@@ -5,7 +5,7 @@ import os.path
 
 def run_cache(cache_port, server_ip, server_port, transport_protocol):
     # Create a socket object
-    cache_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM if transport_protocol == 'tcp' else socket.SOCK_DGRAM)
+    cache_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM )
 
     # Bind the socket to the address and port
     cache_socket.bind(('', cache_port))
@@ -16,7 +16,7 @@ def run_cache(cache_port, server_ip, server_port, transport_protocol):
     # Connect to the server and get the client socket
     client_socket, client_address = cache_socket.accept()
     server_address = (server_ip, server_port)
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM if transport_protocol == 'tcp' else socket.SOCK_DGRAM)
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.connect(server_address)
     
     if transport_protocol == 'tcp':
@@ -67,14 +67,16 @@ def run_cache(cache_port, server_ip, server_port, transport_protocol):
     elif transport_protocol == 'snw':
         print("snw")
     
-        # while True:
-        #     data = client_socket.recv(1024).decode('utf-8')
-        #     if data == "quit":
-        #         print("Client requested to exit.")
-        #         break
+        while True:
+            data = client_socket.recv(1024).decode('utf-8')
+            if data == "":
+                break
+            if data == "quit":
+                print("Client requested to exit.")
+                break
             
-        #     elif data.split()[0] == "get":
-        #         print("get command")
+            elif data.split()[0] == "get":
+                print("get command")
         #         client_socket.send("send file".encode('utf-8'))
                 
         #         fileName = client_socket.recv(1024).decode('utf-8')
@@ -97,8 +99,8 @@ def run_cache(cache_port, server_ip, server_port, transport_protocol):
         #             client_socket.send("data_end".encode('utf-8'))
                 
                 
-        #         else:
-        #             print("File does not exist in cache_folder")
+                # else:
+                #     print("File does not exist in cache_folder")
         #             client_socket.send("from_server".encode('utf-8'))
                 
         #             # # file does not exist in cache_folder
@@ -122,8 +124,8 @@ def run_cache(cache_port, server_ip, server_port, transport_protocol):
         #         # data = server_socket.recv(1024).decode('utf-8')
         #         # client_socket.send(data.encode('utf-8'))
             
-        #     elif data.split()[0] == "put":
-        #         print("put command")
+            elif data.split()[0] == "put":
+                print("put command")
         #         # server_socket.send(data.encode('utf-8'))
         #         # data = server_socket.recv(1024).decode('utf-8')
         #         # client_socket.send(data.encode('utf-8'))

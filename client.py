@@ -4,13 +4,13 @@ import argparse
 def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol):
     # Create a socket object
     
-    cache_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM if transport_protocol == 'tcp' else socket.SOCK_DGRAM)
+    cache_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM )
     # Connect to the cache
     cache_address = (cache_ip, cache_port)
     cache_socket.connect(cache_address)
     # Connect to the server
     
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM if transport_protocol == 'tcp' else socket.SOCK_DGRAM)
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_address = (server_ip, server_port)
     client_socket.connect(server_address)
     
@@ -74,16 +74,16 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
         
     elif transport_protocol == 'snw':
         print("snw")
-        # while True:
-        #     userInput = input("Enter command: ")
+        while True:
+            userInput = input("Enter command: ")
             
-        #     if userInput == "quit":
-        #         client_socket.send(userInput.encode('utf-8'))
-        #         print("Exiting program!")
-        #         break
+            if userInput == "quit":
+                client_socket.send(userInput.encode('utf-8'))
+                print("Exiting program!")
+                break
             
-        #     elif userInput.split()[0] == "get":
-        #         print("get command")
+            elif userInput.split()[0] == "get":
+                print("get command")
         #         inputFile = userInput.split()[1]
         #         cache_socket.send(userInput.split()[0].encode('utf-8'))
         #         message = cache_socket.recv(1024).decode('utf-8')
@@ -109,31 +109,41 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
                         
                     
             
-        #     elif userInput.split()[0] == "put":
-        #         print("Awaiting server response.")
-        #         inputFile = userInput.split()[1]
-        #     # print(inputFile)
-        #         client_socket.send(userInput.split()[0].encode('utf-8'))
-        #         # receive message from server to send file
-        #         message = client_socket.recv(1024).decode('utf-8')
-        #         if(message == "send file"):
-        #             with open(inputFile, 'r') as file:
-        #                 InputData = file.read()
+            elif userInput.split()[0] == "put":
+                print("Awaiting server response.")
+                inputFile = userInput.split()[1]
+                #print(inputFile)
+                client_socket.send(userInput.encode('utf-8'))
+                # receive message from server to send file
+                message = client_socket.recv(1024).decode('utf-8')
+                #print(message)
+                if(message == "send length"):
                     
-        #             for i in range(0, len(InputData), 1000):
-        #                 data = InputData[i:i+1000]
-        #                 if data:
-        #                     client_socket.send("data_start".encode('utf-8'))
-        #                     if client_socket.recv(1024).decode('utf-8') == "data_start_ok":
-        #                         client_socket.send(data.encode('utf-8'))
+                    with open(inputFile, 'r') as file:
+                        InputData = file.read()
+                    myLength = "LEN:"+str(len(InputData))
+                    client_socket.send(myLength .encode('utf-8'))
                     
-        #             client_socket.send("data_end".encode('utf-8'))
-                            
-        #         data = client_socket.recv(1024).decode('utf-8')
-        #         print(data)
+                    message = client_socket.recv(1024).decode('utf-8')
+                    if(message == "ACK"):
+                        
+                        for i in range(0, len(InputData), 1000):
+                            data = InputData[i:i+1000]
+                            if data:
+                                client_socket.send("data_start".encode('utf-8'))
+                                if client_socket.recv(1024).decode('utf-8') == "ACK2":
+                                    client_socket.send(data.encode('utf-8'))
+                        
+                        client_socket.send("FIN".encode('utf-8'))
+                                
+                    data = client_socket.recv(1024).decode('utf-8')
+                    print(data)
+                        
+                #print("File successfully uploaded.")
+        
                 
-        #     else:
-        #         print("Invalid command")
+            else:
+                print("Invalid command")
         
         
     else:
@@ -157,5 +167,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     run_client(args.server_ip, args.server_port, args.cache_ip, args.cache_port, args.transport_protocol)
-
-
