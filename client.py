@@ -1,5 +1,6 @@
 import socket
 import argparse
+import snw_transport
 
 def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol):
     # Create a socket object
@@ -84,28 +85,40 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
             
             elif userInput.split()[0] == "get":
                 print("get command")
-        #         inputFile = userInput.split()[1]
-        #         cache_socket.send(userInput.split()[0].encode('utf-8'))
-        #         message = cache_socket.recv(1024).decode('utf-8')
-        #         if message == "send file":
-        #             cache_socket.send(inputFile.encode('utf-8'))
-        #             receivedFrom = cache_socket.recv(1024).decode('utf-8')
-        #             if receivedFrom == "from_cache":
-        #                 while True:
-        #                     message = cache_socket.recv(1024).decode('utf-8')
-        #                     if message == "data_start":
-        #                         cache_socket.send("data_start_ok".encode('utf-8'))
-        #                         path = "Client_Folder/" + inputFile
-        #                         with open(path, "a") as f:
-        #                             f.write(data)
-        #                             f.close()
+                inputFile = userInput.split()[1]
+                cache_socket.send(userInput.encode('utf-8'))
+                receivedFrom = cache_socket.recv(1024).decode('utf-8')
+                
+                if receivedFrom == "from_cache":
+                  
+                    cache_socket.send("ACK".encode('utf-8'))
+                    while True:
+                        message = cache_socket.recv(1024).decode('utf-8')
+                       
+                        if message == "data_start":
+                            cache_socket.send("ACK2".encode('utf-8'))
+                            data = cache_socket.recv(1024).decode('utf-8')
+                            snw_transport.callSnwClient(data, inputFile)
                                     
-        #                     elif message == "data_end":
-        #                         break
-        #                 print("File delivered from cache.")
-        #             else:
-        #                 print("file from server")
-                        
+                        elif message == "FIN":
+                            break
+                    cache_socket.send("File delivered from cache.".encode('utf-8'))
+                    print("File delivered from cache.")
+                    
+                
+                else:
+                    print("file from server")
+                    # client_socket.send(userInput.encode('utf-8'))
+                    # fileData = client_socket.recv(100000).decode('utf-8')
+                    # with open("Client_Folder/" + inputFile, "w") as f:
+                    #     f.write(fileData)
+                    #     f.close()
+                            
+                    # cache_socket.send(fileData.encode('utf-8'))
+                 
+                    # print("File delivered from origin.")
+                
+            
                         
                     
             
@@ -134,12 +147,11 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
                                 if client_socket.recv(1024).decode('utf-8') == "ACK2":
                                     client_socket.send(data.encode('utf-8'))
                         
+                            
                         client_socket.send("FIN".encode('utf-8'))
                                 
                     data = client_socket.recv(1024).decode('utf-8')
                     print(data)
-                        
-                #print("File successfully uploaded.")
         
                 
             else:

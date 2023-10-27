@@ -77,7 +77,46 @@ def run_cache(cache_port, server_ip, server_port, transport_protocol):
             
             elif data.split()[0] == "get":
                 print("get command")
-        #         client_socket.send("send file".encode('utf-8'))
+                fileName = data.split()[1]
+                path = "Cache_Folder/" + fileName
+                if os.path.exists(path):
+                    client_socket.send("from_cache".encode('utf-8'))
+                    acknowledgement = client_socket.recv(1024).decode('utf-8')
+                    if acknowledgement == "ACK":
+                        with open("Cache_Folder/" + fileName, 'r') as file:
+                            fileData = file.read()
+                            file.close()
+                        for i in range(0, len(fileData), 1000):
+                            data = fileData[i:i+1000]
+                            if data:
+                                client_socket.send("data_start".encode('utf-8'))
+                                if client_socket.recv(1024).decode('utf-8') == "ACK2":
+                                    client_socket.send(data.encode('utf-8'))
+                            else:
+                                break
+                            
+                            
+                        client_socket.send("FIN".encode('utf-8'))
+                        
+                    data = client_socket.recv(1024).decode('utf-8')
+                    print(data)
+                                
+                        
+                    
+                    
+                else:
+                    print("File does not exist in cache_folder")
+                    client_socket.send("from_server".encode('utf-8'))
+                    # fileData = client_socket.recv(100000).decode('utf-8')
+                    # with open(path, 'w') as file:
+                    #     file.write(fileData)
+                    #     file.close()
+                        
+                        
+                        
+                        
+                
+                # client_socket.send("send length".encode('utf-8'))
                 
         #         fileName = client_socket.recv(1024).decode('utf-8')
         #         print(fileName)
