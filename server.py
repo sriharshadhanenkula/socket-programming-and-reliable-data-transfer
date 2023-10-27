@@ -60,9 +60,33 @@ def run_server(port, transport_protocol):
                 print("Client requested to exit.")
                 break
             
-        #     elif data.split()[0] == "get":
-        #         print("get command")
-        #         print(data[1])
+            elif data.split()[0] == "get":
+                print("get command")
+                inputFile = data.split()[1]
+                
+                with open("Server_Folder/" + inputFile, 'r') as file:
+                    InputData = file.read()
+                    file.close()
+                
+                myLength = "LEN:"+str(len(InputData))
+                client_socket.send(myLength .encode('utf-8'))
+                    
+                message = client_socket.recv(1024).decode('utf-8')
+                if(message == "ACK"):
+                    
+                    for i in range(0, len(InputData), 1000):
+                        data = InputData[i:i+1000]
+                        if data:
+                            client_socket.send("data_start".encode('utf-8'))
+                            if client_socket.recv(1024).decode('utf-8') == "ACK2":
+                                client_socket.send(data.encode('utf-8'))
+                        
+                            
+                    client_socket.send("FIN".encode('utf-8'))
+                
+                #client_socket.send(fileData.encode('utf-8')) 
+                
+                
             
             elif data.split()[0] == "put":
                 print("put command")

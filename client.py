@@ -108,19 +108,43 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
                 
                 else:
                     print("file from server")
-                    # client_socket.send(userInput.encode('utf-8'))
-                    # fileData = client_socket.recv(100000).decode('utf-8')
-                    # with open("Client_Folder/" + inputFile, "w") as f:
-                    #     f.write(fileData)
-                    #     f.close()
-                            
-                    # cache_socket.send(fileData.encode('utf-8'))
-                 
-                    # print("File delivered from origin.")
-                
-            
-                        
+                    client_socket.send(userInput.encode('utf-8'))
                     
+                    length = client_socket.recv(1024).decode('utf-8')
+                #print(length)
+                    client_socket.send("ACK".encode('utf-8')) 
+                    totalData = ""
+                    while True:
+                        data = client_socket.recv(1024).decode('utf-8')
+                        if data == "data_start":
+                            client_socket.send("ACK2".encode('utf-8'))
+                            data = client_socket.recv(1024).decode('utf-8')
+                            totalData += data
+                            snw_transport.callSnwClient(data, inputFile)
+                        elif data == "FIN":
+                            break
+                    
+                    # with open("Client_Folder/" + inputFile, "r") as f:
+                    #     fileData = f.read()
+                    #     f.close()
+                    
+                    fileData = totalData
+                    
+                    cache_socket.send("send_data".encode('utf-8'))
+                    acknowledgement = cache_socket.recv(1024).decode('utf-8')
+                    #print(acknowledgement)
+                    if acknowledgement == "ACK":
+                        for i in range(0, len(fileData), 1000):
+                            data = fileData[i:i+1000]
+                            if data:
+                                cache_socket.send("data_start".encode('utf-8'))
+                                if cache_socket.recv(1024).decode('utf-8') == "ACK2":
+                                    cache_socket.send(data.encode('utf-8'))
+                            
+                        cache_socket.send("FIN".encode('utf-8'))
+                    message = cache_socket.recv(1024).decode('utf-8')
+                    print(message)
+                               
             
             elif userInput.split()[0] == "put":
                 print("Awaiting server response.")

@@ -2,6 +2,7 @@ import socket
 import argparse
 import os
 import os.path
+import snw_transport
 
 def run_cache(cache_port, server_ip, server_port, transport_protocol):
     # Create a socket object
@@ -35,7 +36,7 @@ def run_cache(cache_port, server_ip, server_port, transport_protocol):
                 # check if fileName exists in cache_folder
                 path = "Cache_Folder/" + fileName
                 
-                print(path)
+                #print(path)
                 if os.path.exists(path):
                     client_socket.send("from_cache".encode('utf-8'))
                     message = client_socket.recv(1024).decode('utf-8')
@@ -107,61 +108,22 @@ def run_cache(cache_port, server_ip, server_port, transport_protocol):
                 else:
                     print("File does not exist in cache_folder")
                     client_socket.send("from_server".encode('utf-8'))
-                    # fileData = client_socket.recv(100000).decode('utf-8')
-                    # with open(path, 'w') as file:
-                    #     file.write(fileData)
-                    #     file.close()
-                        
-                        
-                        
-                        
-                
-                # client_socket.send("send length".encode('utf-8'))
-                
-        #         fileName = client_socket.recv(1024).decode('utf-8')
-        #         print(fileName)
-                
-        #         # check if fileName exists in cache_folder 
-        #         if os.path.isfile("Cache_Folder/" + fileName):
-        #             print("File exists in cache_folder")
-        #             client_socket.send("from_cache".encode('utf-8'))
-        #             with open("Cache_Folder/" + fileName, 'r') as file:
-        #                 fileData = file.read()
-        #                 file.close()
-        #             for i in range(0, len(fileData), 1000):
-        #                 data = fileData[i:i+1000]
-        #                 if data:
-        #                     client_socket.send("data_start".encode('utf-8'))
-        #                     if client_socket.recv(1024).decode('utf-8') == "data_start_ok":
-        #                         client_socket.send(data.encode('utf-8'))
                     
-        #             client_socket.send("data_end".encode('utf-8'))
-                
-                
-                # else:
-                #     print("File does not exist in cache_folder")
-        #             client_socket.send("from_server".encode('utf-8'))
-                
-        #             # # file does not exist in cache_folder
-        #             # # send message to server to get file
-        #             # server_socket.send(data.encode('utf-8'))
-        #             # data = server_socket.recv(1024).decode('utf-8')
-        #             # client_socket.send(data.encode('utf-8'))
-        #             # # receive file from server
-        #             # data = server_socket.recv(1024).decode('utf-8')
-        #             # # save file to cache_folder
-        #             # with open("Cache_Folder/" + fileName, 'w') as file:
-        #             #     file.write(data)
-        #             #     file.close()
-        #             # # send file to client
-        #             # client_socket.send(data.encode('utf-8'))
-                
-            
-        #         print(data)
-                
-        #         # server_socket.send(data.encode('utf-8'))
-        #         # data = server_socket.recv(1024).decode('utf-8')
-        #         # client_socket.send(data.encode('utf-8'))
+                    message = client_socket.recv(1024).decode('utf-8')
+                    client_socket.send("ACK".encode('utf-8'))
+                    while True:
+                        message = client_socket.recv(1024).decode('utf-8')
+                       
+                        if message == "data_start":
+                            client_socket.send("ACK2".encode('utf-8'))
+                            data = client_socket.recv(1024).decode('utf-8')
+                            snw_transport.callSnwCache(data, fileName)
+                                    
+                        elif message == "FIN":
+                            break
+                        
+                    client_socket.send("File delivered from origin.".encode('utf-8'))               
+
             
             elif data.split()[0] == "put":
                 print("put command")
