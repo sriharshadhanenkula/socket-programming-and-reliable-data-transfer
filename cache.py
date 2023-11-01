@@ -3,6 +3,7 @@ import argparse
 import os
 import os.path
 import snw_transport
+import tcp_transport
 
 def run_cache(cache_port, server_ip, server_port, transport_protocol):
     # Create a socket object
@@ -41,20 +42,15 @@ def run_cache(cache_port, server_ip, server_port, transport_protocol):
                     client_socket.send("from_cache".encode('utf-8'))
                     message = client_socket.recv(1024).decode('utf-8')
                     if message == "send_data":
-                        with open(path, 'r') as file:
-                            fileData = file.read()
-                            file.close()
+                        fileData = tcp_transport.readDataFromCacheFolder(path)
                         client_socket.send(fileData.encode('utf-8'))
-    
                     
                 else:
                     print("File does not exist in cache_folder")
                     client_socket.send("from_server".encode('utf-8'))
 
                     fileData = client_socket.recv(100000).decode('utf-8')
-                    with open(path, 'w') as file:
-                        file.write(fileData)
-                        file.close()
+                    tcp_transport.writeDataInCacheFolder(fileData, path)
                     
             
             elif data.split()[0] == "put":

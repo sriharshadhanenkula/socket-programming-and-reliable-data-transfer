@@ -1,6 +1,7 @@
 import socket
 import argparse
 import snw_transport
+import tcp_transport
 
 def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol):
     # Create a socket object
@@ -25,7 +26,7 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
                 break
             
             elif userInput.split()[0] == "get":
-                print("get command")
+                #print("get command")
                 inputFile = userInput.split()[1]
                 cache_socket.send(userInput.encode('utf-8'))
                 receivedFrom = cache_socket.recv(1024).decode('utf-8')
@@ -33,20 +34,15 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
                 if receivedFrom == "from_cache":
                     cache_socket.send("send_data".encode('utf-8'))
                     fileData = cache_socket.recv(100000).decode('utf-8')
-
-                    with open("Client_Folder/" + inputFile, "a") as f:
-                        f.write(fileData)
-                        f.close()
+                    tcp_transport.saveDataInClientFolder(fileData, inputFile)
                     print("File delivered from cache.")
                     
                 else:
-                    print("file from server")
+                    #print("file from server")
                     client_socket.send(userInput.encode('utf-8'))
                     fileData = client_socket.recv(100000).decode('utf-8')
-                    with open("Client_Folder/" + inputFile, "w") as f:
-                        f.write(fileData)
-                        f.close()
-                            
+                    tcp_transport.saveDataInClientFolder(fileData, inputFile)
+     
                     cache_socket.send(fileData.encode('utf-8'))
                  
                     print("File delivered from origin.")
@@ -62,8 +58,7 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
                 message = client_socket.recv(1024).decode('utf-8')
 
                 if(message == "send file"):
-                    with open(inputFile, 'r') as file:
-                        InputData = file.read()        
+                    InputData = tcp_transport.readData(inputFile)
                         
                     client_socket.send(InputData.encode('utf-8'))
                             

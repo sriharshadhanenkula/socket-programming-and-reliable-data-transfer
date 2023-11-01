@@ -21,26 +21,22 @@ def run_server(port, transport_protocol):
         while True:
             # client_socket, client_address = server_socket.accept()
             data = client_socket.recv(1024).decode('utf-8')
+            if data == "":
+                break
             if data == "quit":
                 print("Client requested to exit.")
                 break
             
             elif data.split()[0] == "get":
-              
                 print("get command")
                 inputFile = data.split()[1]
-                
-                with open("Server_Folder/" + inputFile, 'r') as file:
-                    fileData = file.read()
-                    file.close()
-                    
+                fileData = tcp_transport.readDataServerFolder(inputFile) 
                 client_socket.send(fileData.encode('utf-8'))    
                        
             
             elif data.split()[0] == "put":
                 #print("put command")
                 inputFile = data.split()[1]
-                
                 client_socket.send("send file".encode('utf-8')) 
                 # receive file data from client which is greater than 10000 bytes
                 fileData = client_socket.recv(100000).decode('utf-8')
