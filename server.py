@@ -2,6 +2,7 @@ import socket
 import argparse
 import tcp_transport
 import snw_transport
+import time
 
 def run_server(port, transport_protocol):
     # Create a socket object
@@ -85,6 +86,9 @@ def run_server(port, transport_protocol):
             
             elif data.split()[0] == "put":
                 print("put command")
+                
+                start_time = time.time()
+                 
                 inputFile = data.split()[1]
                 client_socket.send("send length".encode('utf-8'))
                 length = client_socket.recv(1024).decode('utf-8')
@@ -101,6 +105,8 @@ def run_server(port, transport_protocol):
                 
                 client_socket.send("File successfully uploaded.".encode('utf-8'))
                 print("File successfully uploaded.")
+                end_time = time.time()
+                elapsed_time = end_time - start_time
     
             else:
                 print("Invalid command")

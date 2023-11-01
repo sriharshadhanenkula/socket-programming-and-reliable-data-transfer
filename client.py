@@ -2,6 +2,7 @@ import socket
 import argparse
 import snw_transport
 import tcp_transport
+import time
 
 def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol):
     # Create a socket object
@@ -80,6 +81,7 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
             
             elif userInput.split()[0] == "get":
                 # print("get command")
+                start_time = time.time()
                 inputFile = userInput.split()[1]
                 cache_socket.send(userInput.encode('utf-8'))
                 receivedFrom = cache_socket.recv(1024).decode('utf-8') 
@@ -98,9 +100,13 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
                             break
                     cache_socket.send("File delivered from cache.".encode('utf-8'))
                     print("File delivered from cache.")
+                    end_time = time.time()
+                    elapsed_time = end_time - start_time
+                    print("Elapsed time: " + str(elapsed_time))
                     
                 
                 else:
+                    start_time = time.time()
                     # print("file from server")
                     client_socket.send(userInput.encode('utf-8'))   
                     length = client_socket.recv(1024).decode('utf-8')
@@ -133,10 +139,17 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
                         cache_socket.send("FIN".encode('utf-8'))
                     message = cache_socket.recv(1024).decode('utf-8')
                     print(message)
+                    
+                    end_time = time.time()
+                    elapsed_time = end_time - start_time
+                    print("Elapsed time: " + str(elapsed_time))
                                
             
             elif userInput.split()[0] == "put":
                 print("Awaiting server response.")
+                
+                start_time = time.time()
+                
                 inputFile = userInput.split()[1]
                 #print(inputFile)
                 client_socket.send(userInput.encode('utf-8'))
@@ -162,6 +175,10 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
                                 
                     data = client_socket.recv(1024).decode('utf-8')
                     print(data)
+                    
+                end_time = time.time()
+                elapsed_time = end_time - start_time
+                print("Elapsed time: " + str(elapsed_time))
                 
             else:
                 print("Invalid command")
