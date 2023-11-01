@@ -50,8 +50,7 @@ def run_cache(cache_port, server_ip, server_port, transport_protocol):
                     client_socket.send("from_server".encode('utf-8'))
 
                     fileData = client_socket.recv(100000).decode('utf-8')
-                    tcp_transport.writeDataInCacheFolder(fileData, path)
-                    
+                    tcp_transport.writeDataInCacheFolder(fileData, path)       
             
             elif data.split()[0] == "put":
                 print("put command")
@@ -80,9 +79,8 @@ def run_cache(cache_port, server_ip, server_port, transport_protocol):
                     client_socket.send("from_cache".encode('utf-8'))
                     acknowledgement = client_socket.recv(1024).decode('utf-8')
                     if acknowledgement == "ACK":
-                        with open("Cache_Folder/" + fileName, 'r') as file:
-                            fileData = file.read()
-                            file.close()
+                        fileData = snw_transport.readDataFromCacheFolder(path)
+                       
                         for i in range(0, len(fileData), 1000):
                             data = fileData[i:i+1000]
                             if data:
@@ -91,15 +89,11 @@ def run_cache(cache_port, server_ip, server_port, transport_protocol):
                                     client_socket.send(data.encode('utf-8'))
                             else:
                                 break
-                            
-                            
+
                         client_socket.send("FIN".encode('utf-8'))
                         
                     data = client_socket.recv(1024).decode('utf-8')
-                    print(data)
-                                
-                        
-                    
+                    print(data)       
                     
                 else:
                     print("File does not exist in cache_folder")
@@ -123,11 +117,6 @@ def run_cache(cache_port, server_ip, server_port, transport_protocol):
             
             elif data.split()[0] == "put":
                 print("put command")
-        #         # server_socket.send(data.encode('utf-8'))
-        #         # data = server_socket.recv(1024).decode('utf-8')
-        #         # client_socket.send(data.encode('utf-8'))
-        #     else:
-        #         print("Invalid command")
    
     else:
         print("Invalid transport protocol")     

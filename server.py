@@ -81,8 +81,7 @@ def run_server(port, transport_protocol):
                     client_socket.send("FIN".encode('utf-8'))
                 
                 #client_socket.send(fileData.encode('utf-8')) 
-                
-                
+       
             
             elif data.split()[0] == "put":
                 print("put command")

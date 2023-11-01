@@ -79,11 +79,10 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
                 break
             
             elif userInput.split()[0] == "get":
-                print("get command")
+                # print("get command")
                 inputFile = userInput.split()[1]
                 cache_socket.send(userInput.encode('utf-8'))
-                receivedFrom = cache_socket.recv(1024).decode('utf-8')
-                
+                receivedFrom = cache_socket.recv(1024).decode('utf-8') 
                 if receivedFrom == "from_cache":
                   
                     cache_socket.send("ACK".encode('utf-8'))
@@ -102,9 +101,8 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
                     
                 
                 else:
-                    print("file from server")
-                    client_socket.send(userInput.encode('utf-8'))
-                    
+                    # print("file from server")
+                    client_socket.send(userInput.encode('utf-8'))   
                     length = client_socket.recv(1024).decode('utf-8')
                 #print(length)
                     client_socket.send("ACK".encode('utf-8')) 
@@ -119,12 +117,8 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
                         elif data == "FIN":
                             break
                     
-                    # with open("Client_Folder/" + inputFile, "r") as f:
-                    #     fileData = f.read()
-                    #     f.close()
-                    
                     fileData = totalData
-                    
+
                     cache_socket.send("send_data".encode('utf-8'))
                     acknowledgement = cache_socket.recv(1024).decode('utf-8')
                     #print(acknowledgement)
@@ -150,9 +144,7 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
                 message = client_socket.recv(1024).decode('utf-8')
                 #print(message)
                 if(message == "send length"):
-                    
-                    with open(inputFile, 'r') as file:
-                        InputData = file.read()
+                    InputData = snw_transport.readData(inputFile)
                     myLength = "LEN:"+str(len(InputData))
                     client_socket.send(myLength .encode('utf-8'))
                     
@@ -165,22 +157,18 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
                                 client_socket.send("data_start".encode('utf-8'))
                                 if client_socket.recv(1024).decode('utf-8') == "ACK2":
                                     client_socket.send(data.encode('utf-8'))
-                        
                             
                         client_socket.send("FIN".encode('utf-8'))
                                 
                     data = client_socket.recv(1024).decode('utf-8')
                     print(data)
-        
                 
             else:
                 print("Invalid command")
         
-        
     else:
         print("Invalid transport protocol")
-       
-        
+
       
 
     # Close the socket
