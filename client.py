@@ -6,18 +6,20 @@ import time
 
 def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol):
     # Create a socket object
-    
-    cache_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM )
-    # Connect to the cache
-    cache_address = (cache_ip, cache_port)
-    cache_socket.connect(cache_address)
-    # Connect to the server
-    
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_address = (server_ip, server_port)
-    client_socket.connect(server_address)
+
     
     if transport_protocol == 'tcp':
+        
+        cache_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM )
+        # Connect to the cache
+        cache_address = (cache_ip, cache_port)
+        cache_socket.connect(cache_address)
+        # Connect to the server
+        
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_address = (server_ip, server_port)
+        client_socket.connect(server_address)
+        
         while True:
             userInput = input("Enter command: ")
             
@@ -28,6 +30,7 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
             
             elif userInput.split()[0] == "get":
                 #print("get command")
+                start_time = time.time()
                 inputFile = userInput.split()[1]
                 cache_socket.send(userInput.encode('utf-8'))
                 receivedFrom = cache_socket.recv(1024).decode('utf-8')
@@ -47,8 +50,11 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
                     cache_socket.send(fileData.encode('utf-8'))
                  
                     print("File delivered from origin.")
-                
-               
+                    
+                end_time = time.time()
+                elapsed_time = end_time - start_time
+                print("Elapsed time: " + str(elapsed_time)) 
+                           
             
             elif userInput.split()[0] == "put":
                 print("Awaiting server response.")
@@ -68,117 +74,86 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
                 
             else:
                 print("Invalid command client")
+                
+        client_socket.close()
+        cache_socket.close()
         
     elif transport_protocol == 'snw':
+        
+        cache_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM )
+        cache_address = ("localhost", cache_port)
+        
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        server_address = ('localhost', server_port)
+        
+        
         print("snw")
         while True:
             userInput = input("Enter command: ")
             
             if userInput == "quit":
-                client_socket.send(userInput.encode('utf-8'))
+                server_socket.sendto(userInput.encode('utf-8'), server_address)
+                cache_socket.sendto(userInput.encode('utf-8'), cache_address)
                 print("Exiting program!")
                 break
             
             elif userInput.split()[0] == "get":
-                # print("get command")
+                print("get command")
                 start_time = time.time()
                 inputFile = userInput.split()[1]
-                cache_socket.send(userInput.encode('utf-8'))
-                receivedFrom = cache_socket.recv(1024).decode('utf-8') 
-                if receivedFrom == "from_cache":
-                  
-                    cache_socket.send("ACK".encode('utf-8'))
-                    while True:
-                        message = cache_socket.recv(1024).decode('utf-8')
-                       
-                        if message == "data_start":
-                            cache_socket.send("ACK2".encode('utf-8'))
-                            data = cache_socket.recv(1024).decode('utf-8')
-                            snw_transport.callSnwClient(data, inputFile)
-                                    
-                        elif message == "FIN":
-                            break
-                    cache_socket.send("File delivered from cache.".encode('utf-8'))
-                    print("File delivered from cache.")
-                    end_time = time.time()
-                    elapsed_time = end_time - start_time
-                    print("Elapsed time: " + str(elapsed_time))
-                    
+                cache_socket.sendto(userInput.encode('utf-8'), cache_address)
                 
-                else:
-                    start_time = time.time()
-                    # print("file from server")
-                    client_socket.send(userInput.encode('utf-8'))   
-                    length = client_socket.recv(1024).decode('utf-8')
-                #print(length)
-                    client_socket.send("ACK".encode('utf-8')) 
-                    totalData = ""
-                    while True:
-                        data = client_socket.recv(1024).decode('utf-8')
-                        if data == "data_start":
-                            client_socket.send("ACK2".encode('utf-8'))
-                            data = client_socket.recv(1024).decode('utf-8')
-                            totalData += data
-                            snw_transport.callSnwClient(data, inputFile)
-                        elif data == "FIN":
-                            break
+                receivedFrom, _ = cache_socket.recvfrom(1024)
+                receivedFrom = receivedFrom.decode('utf-8')
+                length, _ = cache_socket.recvfrom(1024)
+                length = length.decode('utf-8')
+                myLength = int(length)
+                receivedData = ""
+                while myLength > 0:
+                    data, _ = cache_socket.recvfrom(1024)
+                    data = data.decode('utf-8')
+                    receivedData += data
+                    myLength -= len(data)
                     
-                    fileData = totalData
-
-                    cache_socket.send("send_data".encode('utf-8'))
-                    acknowledgement = cache_socket.recv(1024).decode('utf-8')
-                    #print(acknowledgement)
-                    if acknowledgement == "ACK":
-                        for i in range(0, len(fileData), 1000):
-                            data = fileData[i:i+1000]
-                            if data:
-                                cache_socket.send("data_start".encode('utf-8'))
-                                if cache_socket.recv(1024).decode('utf-8') == "ACK2":
-                                    cache_socket.send(data.encode('utf-8'))
-                            
-                        cache_socket.send("FIN".encode('utf-8'))
-                    message = cache_socket.recv(1024).decode('utf-8')
-                    print(message)
+                    cache_socket.sendto("ACK".encode('utf-8'), cache_address)
                     
-                    end_time = time.time()
-                    elapsed_time = end_time - start_time
-                    print("Elapsed time: " + str(elapsed_time))
-                               
-            
-            elif userInput.split()[0] == "put":
-                print("Awaiting server response.")
+                snw_transport.callSnwClient(receivedData, inputFile)
                 
-                start_time = time.time()
-                
-                inputFile = userInput.split()[1]
-                #print(inputFile)
-                client_socket.send(userInput.encode('utf-8'))
-                # receive message from server to send file
-                message = client_socket.recv(1024).decode('utf-8')
-                #print(message)
-                if(message == "send length"):
-                    InputData = snw_transport.readData(inputFile)
-                    myLength = "LEN:"+str(len(InputData))
-                    client_socket.send(myLength .encode('utf-8'))
-                    
-                    message = client_socket.recv(1024).decode('utf-8')
-                    if(message == "ACK"):
-                        
-                        for i in range(0, len(InputData), 1000):
-                            data = InputData[i:i+1000]
-                            if data:
-                                client_socket.send("data_start".encode('utf-8'))
-                                if client_socket.recv(1024).decode('utf-8') == "ACK2":
-                                    client_socket.send(data.encode('utf-8'))
-                            
-                        client_socket.send("FIN".encode('utf-8'))
-                                
-                    data = client_socket.recv(1024).decode('utf-8')
-                    print(data)
-                    
+                print(receivedFrom)
                 end_time = time.time()
                 elapsed_time = end_time - start_time
                 print("Elapsed time: " + str(elapsed_time))
+                        
+            
+            elif userInput.split()[0] == "put":
+                print("Awaiting server response.")
+                start_time = time.time()
+                inputFile = userInput.split()[1]
+                path = "Client_Folder/" + inputFile
+                server_socket.sendto(userInput.encode('utf-8'), server_address)
+                with open(path, 'r') as f:
+                    data = f.read()
+                    data_len = len(data)
+                    server_socket.sendto(str(data_len).encode('utf-8'), server_address)
+
+                    chunk_size = 1000
+                    chunks = [data[i:i + chunk_size] for i in range(0, data_len, chunk_size)]
+
+                    for chunk in chunks:
+                        server_socket.sendto(chunk.encode('utf-8'), server_address)
+                        ack, _ = server_socket.recvfrom(1024)
+
+                    # receive FIN acknowledgment from the server
+                    fin_ack, _ = server_socket.recvfrom(1024)
+                    FIN = fin_ack.decode('utf-8')
+                    if FIN == "FIN":
+                        print("File successfully uploaded.")
+                    else:
+                        print("File upload failed.")
+                end_time = time.time()
+                elapsed_time = end_time - start_time
+                print("Elapsed time: " + str(elapsed_time))   
+                    
                 
             else:
                 print("Invalid command")
@@ -189,8 +164,8 @@ def run_client(server_ip, server_port, cache_ip, cache_port, transport_protocol)
       
 
     # Close the socket
-    client_socket.close()
-    cache_socket.close()
+    
+    
     
 
 if __name__ == "__main__":
